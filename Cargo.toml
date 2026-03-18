@@ -10,6 +10,7 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 num-complex = "0.4.6"
+num-traits = "0.2.19"
 pyo3 = { version = "0.28.2", features = ["num-complex"] }
 
 [dev-dependencies]
