@@ -2,7 +2,7 @@ from .perm_rs import (
     _permanent_f32,
     _permanent_f64,
     _permanent_cf32,
-    _permanent_cf64
+    _permanent_cf64,
 )
 import numpy as np
 
