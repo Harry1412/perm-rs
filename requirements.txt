@@ -1,0 +1,6 @@
+numpy
+pytest
+pytest-benchmark
+ruff
+scipy
+thewalrus

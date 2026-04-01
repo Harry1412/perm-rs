@@ -11,3 +11,10 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = ["version"]
+
+## pytest config
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra" 
+testpaths = ["tests"]
+python_files = ["*_benchmark.py", "*_test.py"]
