@@ -18,3 +18,67 @@ minversion = "6.0"
 addopts = "-ra" 
 testpaths = ["tests"]
 python_files = ["*_benchmark.py", "*_test.py"]
+
+## ruff config
+[tool.ruff]
+exclude = [
+    "venv",
+    "setup.py",
+]
+line-length = 80
+indent-width = 4
+target-version = "py311"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint]
+preview = true
+select = ["ALL"]
+fixable = ["ALL"]
+ignore = [
+    "ANN401",
+    "C901",
+    "COM812",
+    "CPY",
+    "D100",
+    "D104",
+    "D105",
+    "D107",
+    "D200",
+    "D205",
+    "D212",
+    "D412",
+    "D415",
+    "DOC201",
+    "DOC402",
+    "DOC501",
+    "EM101",
+    "FBT",
+    "PLR09",
+    "PT011",
+    "PLR1702",
+    "PLR2004",
+    "PLR6301",
+    "S311",
+    "SLF001",
+    "TD",
+    "TRY003",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["PERF", "ANN", "S101", "PLC2701", "SLF001", "DOC201"]
+"benchmark/*" = ["PERF", "ANN", "S101", "PLC2701", "SLF001", "DOC201", "D103"]
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "tuple"
+parametrize-values-row-type = "tuple"
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["input"]
