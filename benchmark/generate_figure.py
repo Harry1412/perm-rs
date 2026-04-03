@@ -31,7 +31,7 @@ if __name__ == "__main__":
     thewalrus_time(m)
 
     # Settings
-    n_range = range(2, 10)  # Unitary sizes
+    n_range = range(2, 27)  # Unitary sizes
     n_reps = 20  # Number of repeats
     best_n = 5  # Best n times to take
 
@@ -39,6 +39,7 @@ if __name__ == "__main__":
     perm_rs_times = []
     walrus_times = []
     for n in n_range:
+        print(f"n = {n}")  # noqa: T201
         mat = random_unitary(n)
 
         # perm rs
@@ -61,9 +62,9 @@ if __name__ == "__main__":
     plt.savefig(path / "perm_calc_times.png")
     plt.clf()
 
-    plt.plot(n_range, np.array(perm_rs_times) / np.array(walrus_times))
+    plt.plot(n_range, np.array(perm_rs_times) / np.array(walrus_times) * 100)
     plt.xlabel("n")
     plt.ylabel("Relative calculation time (%)")
-    plt.axhline(1, color="black", linestyle="--")
-    plt.title("Relative calculation time of\nperm_rs compared to thewalrus.")
+    plt.axhline(100, color="black", linestyle="--")
+    plt.title("Relative calculation time of perm_rs to thewalrus.")
     plt.savefig(path / "perm_relative_times.png")
