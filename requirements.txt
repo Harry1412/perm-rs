@@ -1,3 +1,5 @@
+matplotlib
+maturin
 numpy
 pytest
 pytest-benchmark
