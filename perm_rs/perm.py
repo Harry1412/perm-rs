@@ -23,7 +23,7 @@ def permanent(matrix: npt.NDArray[T]) -> T:
     """
     if not isinstance(matrix, np.ndarray):
         raise TypeError("Provided matrix should be a numpy array.")
-    if matrix.shape[0] < 15:
+    if matrix.shape[0] < 14:
         return permanent_single(matrix)
     return permanent_multi(matrix)
 
