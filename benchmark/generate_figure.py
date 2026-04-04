@@ -48,36 +48,36 @@ if __name__ == "__main__":
     best_n = 5  # Best n times to take
 
     # Generate times
-    perm_rs_times = []
-    perm_rs_singl_times = []
-    perm_rs_multi_times = []
-    walrus_times = []
+    perm_rs_t = []
+    perm_rs_single_t = []
+    perm_rs_multi_t = []
+    walrus_t = []
     for n in n_range:
         print(f"n = {n}")  # noqa: T201
         mat = random_unitary(n)
 
         # perm rs optimal
         sub_times = [perm_rs_time(mat) for _ in range(n_reps)]
-        perm_rs_times.append(np.mean(sorted(sub_times)[:best_n]))
+        perm_rs_t.append(np.mean(sorted(sub_times)[:best_n]))
 
         # perm rs single-threaded
-        sub_times = [perm_rs_time(mat) for _ in range(n_reps)]
-        perm_rs_singl_times.append(np.mean(sorted(sub_times)[:best_n]))
+        sub_times = [perm_rs_single_time(mat) for _ in range(n_reps)]
+        perm_rs_single_t.append(np.mean(sorted(sub_times)[:best_n]))
 
         # perm rs multi-threaded
-        sub_times = [perm_rs_time(mat) for _ in range(n_reps)]
-        perm_rs_multi_times.append(np.mean(sorted(sub_times)[:best_n]))
+        sub_times = [perm_rs_multi_time(mat) for _ in range(n_reps)]
+        perm_rs_multi_t.append(np.mean(sorted(sub_times)[:best_n]))
 
         # thewalurs
         sub_times = [thewalrus_time(mat) for _ in range(n_reps)]
-        walrus_times.append(np.mean(sorted(sub_times)[:best_n]))
+        walrus_t.append(np.mean(sorted(sub_times)[:best_n]))
 
     path = Path(__file__).parent
 
-    plt.plot(n_range, perm_rs_times, label="perm_rs opt")
-    plt.plot(n_range, perm_rs_singl_times, label="perm_rs single")
-    plt.plot(n_range, perm_rs_multi_times, label="perm_rs multi")
-    plt.plot(n_range, walrus_times, label="thewalrus")
+    plt.plot(n_range, perm_rs_t, label="perm_rs opt")
+    plt.plot(n_range, perm_rs_single_t, label="perm_rs single")
+    plt.plot(n_range, perm_rs_multi_t, label="perm_rs multi")
+    plt.plot(n_range, walrus_t, label="thewalrus")
     plt.xlabel("n")
     plt.ylabel("Time (seconds)")
     plt.yscale("log")
@@ -88,23 +88,23 @@ if __name__ == "__main__":
 
     plt.plot(
         n_range,
-        np.array(perm_rs_times) / np.array(walrus_times) * 100,
+        np.array(perm_rs_t) / np.array(walrus_t) * 100,
         label="opt",
     )
     plt.plot(
         n_range,
-        np.array(perm_rs_singl_times) / np.array(walrus_times) * 100,
+        np.array(perm_rs_single_t) / np.array(walrus_t) * 100,
         label="single-threaded",
     )
     plt.plot(
         n_range,
-        np.array(perm_rs_multi_times) / np.array(walrus_times) * 100,
+        np.array(perm_rs_multi_t) / np.array(walrus_t) * 100,
         label="multi-threaded",
     )
     plt.xlabel("n")
     plt.ylabel("Relative calculation time (%)")
     plt.axhline(100, color="black", linestyle="--")
     plt.title("Relative calculation time of perm_rs to thewalrus.")
-    plt.ylim(0, 4)
+    plt.ylim(0, 400)
     plt.legend()
     plt.savefig(path / "perm_relative_times.png")
