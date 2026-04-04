@@ -1,9 +1,10 @@
 use ndarray::ArrayView2;
 use num_complex::ComplexFloat;
 use num_traits::{FromPrimitive, One, Zero};
+use rayon::prelude::*;
 use std::{iter, ops};
 
-pub fn permanent<T>(matrix: ArrayView2<T>) -> T
+pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
 where
     T: ComplexFloat
         + iter::Sum
@@ -47,6 +48,103 @@ where
     total / T::from_u64(num_loops).unwrap()
 }
 
+pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
+where
+    T: ComplexFloat
+        + iter::Sum
+        + iter::Product
+        + ops::Mul<Output = T>
+        + ops::MulAssign
+        + ops::AddAssign
+        + FromPrimitive
+        + Zero
+        + One
+        + Send
+        + Sync,
+{
+    let n = matrix.ncols();
+    let num_loops = 2_u64.pow(n as u32 - 1);
+    let num_threads = rayon::current_num_threads() as u64;
+    let chunk_size = num_loops.div_ceil(num_threads);
+
+    let total: T = (0..num_threads.min(num_loops))
+        .into_par_iter()
+        .map(|thread_id| {
+            let start = thread_id * chunk_size + 1;
+            let end = ((thread_id + 1) * chunk_size).min(num_loops);
+
+            let init_old_gray = (start - 1) ^ ((start - 1) >> 1);
+            let mut row_comb: Vec<T> = (0..n)
+                .map(|col| {
+                    (0..n)
+                        .map(|row| {
+                            let val = matrix[[row, col]];
+                            if (init_old_gray >> row) & 1 == 1 {
+                                -val
+                            } else {
+                                val
+                            }
+                        })
+                        .sum()
+                })
+                .collect();
+
+            // Determine initial sign based on starting bin_index
+            let mut sign = match (start - 1).is_multiple_of(2) {
+                true => T::one(),
+                false => -T::one(),
+            };
+            let mut partial_total = T::zero();
+            let mut old_gray = init_old_gray;
+
+            for bin_index in start..=end {
+                let reduced: T = row_comb.iter().copied().product();
+                partial_total += sign * reduced;
+
+                let new_gray = bin_index ^ (bin_index >> 1);
+                let gray_diff = old_gray ^ new_gray;
+                let gray_diff_index = gray_diff.trailing_zeros() as usize;
+
+                let new_vector = matrix.row(gray_diff_index);
+                let direction = T::from_isize(
+                    2 * ((old_gray > new_gray) as isize - (old_gray < new_gray) as isize),
+                )
+                .unwrap();
+
+                for i in 0..n {
+                    row_comb[i] += new_vector[i] * direction;
+                }
+                sign = -sign;
+                old_gray = new_gray;
+            }
+            partial_total
+        })
+        .sum();
+
+    total / T::from_u64(num_loops).unwrap()
+}
+
+pub fn permanent<T>(matrix: ArrayView2<T>) -> T
+where
+    T: ComplexFloat
+        + iter::Sum
+        + iter::Product
+        + ops::Mul<Output = T>
+        + ops::MulAssign
+        + ops::AddAssign
+        + FromPrimitive
+        + Zero
+        + One
+        + Send
+        + Sync,
+{
+    if matrix.ncols() < 20 {
+        permanent_single(matrix)
+    } else {
+        permanent_multi(matrix)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,7 +164,7 @@ mod tests {
     fn test_perm_1() {
         let mut rng = rand::rng();
         let a: f64 = rng.random();
-        let res = permanent(Array2::from_elem((1, 1), a).view());
+        let res = permanent_single(Array2::from_elem((1, 1), a).view());
         assert_abs_diff_eq!(res, a, epsilon = EPSILON);
     }
 
@@ -74,7 +172,7 @@ mod tests {
     fn test_perm_1_cmplx() {
         let mut rng = rand::rng();
         let a: Complex<f64> = Complex::new(rng.random(), rng.random());
-        let res = permanent(Array2::from_elem((1, 1), a).view());
+        let res = permanent_single(Array2::from_elem((1, 1), a).view());
         assert_equal_complex(res, a);
     }
 
@@ -82,7 +180,7 @@ mod tests {
     fn test_perm_2() {
         let mut rng = rand::rng();
         let matrix = Array2::from_shape_fn((2, 2), |_| rng.random::<f64>());
-        let res = permanent(matrix.view());
+        let res = permanent_single(matrix.view());
         let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
         assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
     }
@@ -93,7 +191,43 @@ mod tests {
         let matrix = Array2::from_shape_fn((2, 2), |_| {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
-        let res = permanent(matrix.view());
+        let res = permanent_single(matrix.view());
+        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        assert_equal_complex(res, expected);
+    }
+
+    #[test]
+    fn test_perm_multi_1() {
+        let mut rng = rand::rng();
+        let a: f64 = rng.random();
+        let res = permanent_multi(Array2::from_elem((1, 1), a).view());
+        assert_abs_diff_eq!(res, a, epsilon = EPSILON);
+    }
+
+    #[test]
+    fn test_perm_multi_1_cmplx() {
+        let mut rng = rand::rng();
+        let a: Complex<f64> = Complex::new(rng.random(), rng.random());
+        let res = permanent_multi(Array2::from_elem((1, 1), a).view());
+        assert_equal_complex(res, a);
+    }
+
+    #[test]
+    fn test_perm_multi_2() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((2, 2), |_| rng.random::<f64>());
+        let res = permanent_multi(matrix.view());
+        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
+    }
+
+    #[test]
+    fn test_perm_multi_2_cmplx() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((2, 2), |_| {
+            Complex::new(rng.random::<f64>(), rng.random::<f64>())
+        });
+        let res = permanent_multi(matrix.view());
         let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
         assert_equal_complex(res, expected);
     }
