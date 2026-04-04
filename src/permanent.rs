@@ -79,6 +79,7 @@ where
     let num_loops = 2_u64.pow(n as u32 - 1);
     let num_threads = rayon::current_num_threads() as u64;
     let chunk_size = num_loops.div_ceil(num_threads);
+    let matrix_t = matrix.t();
 
     let total: T = (0..num_threads.min(num_loops))
         .into_par_iter()
@@ -91,7 +92,7 @@ where
                 .map(|col| {
                     (0..n)
                         .map(|row| {
-                            let val = matrix[[row, col]];
+                            let val = matrix_t[[col, row]];
                             if (init_old_gray >> row) & 1 == 1 {
                                 -val
                             } else {
