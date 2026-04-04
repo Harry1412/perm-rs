@@ -127,7 +127,7 @@ pub fn permanent<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
 {
-    if matrix.ncols() < 14 {
+    if matrix.ncols() < 17 {
         permanent_single(matrix)
     } else {
         permanent_multi(matrix)
