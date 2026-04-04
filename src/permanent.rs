@@ -4,6 +4,31 @@ use num_traits::{FromPrimitive, One, Zero};
 use rayon::prelude::*;
 use std::{iter, ops};
 
+pub trait SupportsPermanent:
+    ComplexFloat
+    + iter::Sum
+    + iter::Product
+    + ops::Mul<Output = Self>
+    + ops::MulAssign
+    + ops::AddAssign
+    + FromPrimitive
+    + Zero
+    + One
+{
+}
+impl<T> SupportsPermanent for T where
+    T: ComplexFloat
+        + iter::Sum
+        + iter::Product
+        + ops::Mul<Output = Self>
+        + ops::MulAssign
+        + ops::AddAssign
+        + FromPrimitive
+        + Zero
+        + One
+{
+}
+
 fn gray_loops<T>(
     matrix: &ArrayView2<T>,
     row_comb: &mut [T],
@@ -11,7 +36,7 @@ fn gray_loops<T>(
     mut sign: T,
 ) -> T
 where
-    T: ComplexFloat + ops::AddAssign + iter::Product + FromPrimitive,
+    T: SupportsPermanent,
 {
     let n = matrix.ncols();
 
@@ -39,15 +64,7 @@ where
 
 pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
 where
-    T: ComplexFloat
-        + iter::Sum
-        + iter::Product
-        + ops::Mul<Output = T>
-        + ops::MulAssign
-        + ops::AddAssign
-        + FromPrimitive
-        + Zero
-        + One,
+    T: SupportsPermanent,
 {
     let n = matrix.ncols();
     let num_loops = 2_u64.pow(n as u32 - 1);
@@ -63,17 +80,7 @@ where
 
 pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
 where
-    T: ComplexFloat
-        + iter::Sum
-        + iter::Product
-        + ops::Mul<Output = T>
-        + ops::MulAssign
-        + ops::AddAssign
-        + FromPrimitive
-        + Zero
-        + One
-        + Send
-        + Sync,
+    T: SupportsPermanent + Send + Sync,
 {
     let n = matrix.ncols();
     let num_loops = 2_u64.pow(n as u32 - 1);
@@ -118,19 +125,9 @@ where
 
 pub fn permanent<T>(matrix: ArrayView2<T>) -> T
 where
-    T: ComplexFloat
-        + iter::Sum
-        + iter::Product
-        + ops::Mul<Output = T>
-        + ops::MulAssign
-        + ops::AddAssign
-        + FromPrimitive
-        + Zero
-        + One
-        + Send
-        + Sync,
+    T: SupportsPermanent + Send + Sync,
 {
-    if matrix.ncols() < 20 {
+    if matrix.ncols() < 15 {
         permanent_single(matrix)
     } else {
         permanent_multi(matrix)
