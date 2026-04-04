@@ -4,33 +4,23 @@ use num_traits::{FromPrimitive, One, Zero};
 use rayon::prelude::*;
 use std::{iter, ops};
 
-pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
+fn gray_loops<T>(
+    matrix: &ArrayView2<T>,
+    row_comb: &mut [T],
+    range: ops::RangeInclusive<u64>,
+    mut sign: T,
+) -> T
 where
-    T: ComplexFloat
-        + iter::Sum
-        + iter::Product
-        + ops::Mul<Output = T>
-        + ops::MulAssign
-        + ops::AddAssign
-        + FromPrimitive
-        + Zero
-        + One,
+    T: ComplexFloat + ops::AddAssign + iter::Product + FromPrimitive,
 {
     let n = matrix.ncols();
 
-    let mut row_comb: Vec<T> = (0..n)
-        .map(|i| (0..n).map(|j| matrix[[j, i]]).sum())
-        .collect();
-
     let mut total = T::zero();
     let mut old_gray = 0;
-    let mut sign = T::one();
-    let num_loops = 2_u64.pow(n as u32 - 1);
-
-    for bin_index in 1..=num_loops {
+    for bin_index in range {
         let reduced: T = row_comb.iter().copied().product();
         total += sign * reduced;
-        let new_gray = bin_index ^ (bin_index / 2);
+        let new_gray = bin_index ^ (bin_index >> 1);
         let gray_diff = old_gray ^ new_gray;
         let gray_diff_index = gray_diff.trailing_zeros() as usize;
 
@@ -44,6 +34,29 @@ where
         sign = -sign;
         old_gray = new_gray;
     }
+    total
+}
+
+pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
+where
+    T: ComplexFloat
+        + iter::Sum
+        + iter::Product
+        + ops::Mul<Output = T>
+        + ops::MulAssign
+        + ops::AddAssign
+        + FromPrimitive
+        + Zero
+        + One,
+{
+    let n = matrix.ncols();
+    let num_loops = 2_u64.pow(n as u32 - 1);
+
+    let mut row_comb: Vec<T> = (0..n)
+        .map(|i| (0..n).map(|j| matrix[[j, i]]).sum())
+        .collect();
+
+    let total = gray_loops(&matrix, &mut row_comb, 1..=num_loops, T::one());
 
     total / T::from_u64(num_loops).unwrap()
 }
@@ -90,34 +103,12 @@ where
                 .collect();
 
             // Determine initial sign based on starting bin_index
-            let mut sign = match (start - 1).is_multiple_of(2) {
+            let sign = match (start - 1).is_multiple_of(2) {
                 true => T::one(),
                 false => -T::one(),
             };
-            let mut partial_total = T::zero();
-            let mut old_gray = init_old_gray;
 
-            for bin_index in start..=end {
-                let reduced: T = row_comb.iter().copied().product();
-                partial_total += sign * reduced;
-
-                let new_gray = bin_index ^ (bin_index >> 1);
-                let gray_diff = old_gray ^ new_gray;
-                let gray_diff_index = gray_diff.trailing_zeros() as usize;
-
-                let new_vector = matrix.row(gray_diff_index);
-                let direction = T::from_isize(
-                    2 * ((old_gray > new_gray) as isize - (old_gray < new_gray) as isize),
-                )
-                .unwrap();
-
-                for i in 0..n {
-                    row_comb[i] += new_vector[i] * direction;
-                }
-                sign = -sign;
-                old_gray = new_gray;
-            }
-            partial_total
+            gray_loops(&matrix, &mut row_comb, start..=end, sign)
         })
         .sum();
 
