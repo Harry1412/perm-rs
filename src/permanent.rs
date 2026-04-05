@@ -2,7 +2,7 @@ use ndarray::ArrayView2;
 use num_complex::ComplexFloat;
 use num_traits::{FromPrimitive, One, Zero};
 use rayon::prelude::*;
-use std::{iter, ops};
+use std::{cmp, iter, ops};
 
 /// Custom trait for wrapping all traits required for an object to be compatible
 /// with the permanent functions.
@@ -58,12 +58,17 @@ where
         let gray_diff_index = gray_diff.trailing_zeros() as usize;
 
         let new_vector = matrix.row(gray_diff_index);
-        let direction =
-            T::from_isize(2 * ((old_gray > new_gray) as isize - (old_gray < new_gray) as isize))
-                .unwrap();
+        let direction = T::from_i8(match old_gray.cmp(&new_gray) {
+            cmp::Ordering::Greater => 2,
+            cmp::Ordering::Less => -2,
+            cmp::Ordering::Equal => 0,
+        })
+        .unwrap();
+
         for i in 0..n {
             row_comb[i] += new_vector[i] * direction;
         }
+
         sign = -sign;
         old_gray = new_gray;
     }
@@ -95,6 +100,7 @@ where
     let num_loops = 2_u64.pow(n as u32 - 1);
     let num_threads = rayon::current_num_threads() as u64;
     let chunk_size = num_loops.div_ceil(num_threads);
+    let matrix_t = matrix.t();
 
     let total: T = (0..num_threads.min(num_loops))
         .into_par_iter()
@@ -103,11 +109,10 @@ where
             let end = ((thread_id + 1) * chunk_size).min(num_loops);
 
             let init_old_gray = (start - 1) ^ ((start - 1) >> 1);
-            let mut row_comb: Vec<T> = (0..n)
+            let mut row_comb: Vec<T> = matrix_t
+                .outer_iter()
                 .map(|col| {
-                    matrix
-                        .column(col)
-                        .iter()
+                    col.iter()
                         .enumerate()
                         .map(|(row, val)| {
                             if init_old_gray & (1 << row) != 0 {
@@ -124,7 +129,7 @@ where
                 &matrix,
                 &mut row_comb,
                 start..=end,
-                (start - 1).is_multiple_of(2), // Determine initial sign based on starting bin_index
+                !start.is_multiple_of(2), // Determine initial sign based on starting bin_index
             )
         })
         .sum();
