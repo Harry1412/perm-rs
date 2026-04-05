@@ -4,6 +4,8 @@ use num_traits::{FromPrimitive, One, Zero};
 use rayon::prelude::*;
 use std::{iter, ops};
 
+/// Custom trait for wrapping all traits required for an object to be compatible
+/// with the permanent functions.
 pub trait SupportsPermanent:
     ComplexFloat
     + iter::Sum
@@ -29,6 +31,7 @@ impl<T> SupportsPermanent for T where
 {
 }
 
+/// Runs loops required for grey code across the provided range of indices.
 fn gray_loops<T>(
     matrix: &ArrayView2<T>,
     row_comb: &mut [T],
@@ -67,23 +70,23 @@ where
     total
 }
 
+/// Compute the permanent using single-threading. This is a recreation of code
+/// from thewalrus Python module.
 pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent,
 {
-    let n = matrix.ncols();
-    let num_loops = 2_u64.pow(n as u32 - 1);
+    let num_loops = 2_u64.pow(matrix.ncols() as u32 - 1);
 
-    let mut row_comb: Vec<T> = (0..n)
-        .map(|i| (0..n).map(|j| matrix[[j, i]]).sum())
-        .collect();
-
+    let mut row_comb = matrix.sum_axis(ndarray::Axis(0)).to_vec();
     let total = gray_loops(&matrix, &mut row_comb, 1..=num_loops, true);
 
     total / T::from_u64(num_loops).unwrap()
 }
 
-/// https://doi.org/10.48550/arXiv.2602.10141
+/// Compute the permanent using multi-threading, modifying the single-threaded
+/// code using the techniques discussed in
+/// https://doi.org/10.48550/arXiv.2602.10141 to improve performance.
 pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
@@ -92,7 +95,6 @@ where
     let num_loops = 2_u64.pow(n as u32 - 1);
     let num_threads = rayon::current_num_threads() as u64;
     let chunk_size = num_loops.div_ceil(num_threads);
-    let matrix_t = matrix.t();
 
     let total: T = (0..num_threads.min(num_loops))
         .into_par_iter()
@@ -103,13 +105,15 @@ where
             let init_old_gray = (start - 1) ^ ((start - 1) >> 1);
             let mut row_comb: Vec<T> = (0..n)
                 .map(|col| {
-                    (0..n)
-                        .map(|row| {
-                            let val = matrix_t[[col, row]];
+                    matrix
+                        .column(col)
+                        .iter()
+                        .enumerate()
+                        .map(|(row, val)| {
                             if init_old_gray & (1 << row) != 0 {
-                                -val
+                                -*val
                             } else {
-                                val
+                                *val
                             }
                         })
                         .sum()
@@ -128,6 +132,9 @@ where
     total / T::from_u64(num_loops).unwrap()
 }
 
+/// Computes the permanent of a provided matrix, switching between single &
+/// multi-threading based on an internally set threshold to optimise
+/// performance.
 pub fn permanent<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
