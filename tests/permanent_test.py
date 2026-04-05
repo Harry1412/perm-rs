@@ -12,7 +12,7 @@ random_unitary = unitary_group.rvs
 approximate = partial(pytest.approx, abs=1e-6)
 
 
-@pytest.fixture(params=[3, 10, 15, 20])
+@pytest.fixture(params=[1, 2, 5, 10, 15, 20])
 def size(request):
     """Size of matrices to use in permanent testing"""
     return request.param

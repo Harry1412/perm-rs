@@ -100,7 +100,7 @@ where
                     (0..n)
                         .map(|row| {
                             let val = matrix_t[[col, row]];
-                            if (init_old_gray >> row) & 1 == 1 {
+                            if init_old_gray & (1 << row) != 0 {
                                 -val
                             } else {
                                 val
