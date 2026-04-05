@@ -33,15 +33,20 @@ fn gray_loops<T>(
     matrix: &ArrayView2<T>,
     row_comb: &mut [T],
     range: ops::RangeInclusive<u64>,
-    mut sign: T,
+    start_positive_sign: bool,
 ) -> T
 where
     T: SupportsPermanent,
 {
     let n = matrix.ncols();
 
+    let mut sign = match start_positive_sign {
+        true => T::one(),
+        false => -T::one(),
+    };
     let mut total = T::zero();
     let mut old_gray = 0;
+
     for bin_index in range {
         let reduced: T = row_comb.iter().copied().product();
         total += sign * reduced;
@@ -73,11 +78,12 @@ where
         .map(|i| (0..n).map(|j| matrix[[j, i]]).sum())
         .collect();
 
-    let total = gray_loops(&matrix, &mut row_comb, 1..=num_loops, T::one());
+    let total = gray_loops(&matrix, &mut row_comb, 1..=num_loops, true);
 
     total / T::from_u64(num_loops).unwrap()
 }
 
+/// https://doi.org/10.48550/arXiv.2602.10141
 pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
@@ -110,13 +116,12 @@ where
                 })
                 .collect();
 
-            // Determine initial sign based on starting bin_index
-            let sign = match (start - 1).is_multiple_of(2) {
-                true => T::one(),
-                false => -T::one(),
-            };
-
-            gray_loops(&matrix, &mut row_comb, start..=end, sign)
+            gray_loops(
+                &matrix,
+                &mut row_comb,
+                start..=end,
+                (start - 1).is_multiple_of(2), // Determine initial sign based on starting bin_index
+            )
         })
         .sum();
 
