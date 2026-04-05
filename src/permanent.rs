@@ -166,6 +166,18 @@ mod tests {
         assert_abs_diff_eq!(v1.im, v2.im, epsilon = EPSILON);
     }
 
+    fn true_perm_3<T>(matrix: ArrayView2<T>) -> T
+    where
+        T: SupportsPermanent,
+    {
+        matrix[[0, 0]] * matrix[[1, 1]] * matrix[[2, 2]]
+            + matrix[[0, 1]] * matrix[[1, 2]] * matrix[[2, 0]]
+            + matrix[[0, 2]] * matrix[[1, 0]] * matrix[[2, 1]]
+            + matrix[[0, 2]] * matrix[[1, 1]] * matrix[[2, 0]]
+            + matrix[[0, 1]] * matrix[[1, 0]] * matrix[[2, 2]]
+            + matrix[[0, 0]] * matrix[[1, 2]] * matrix[[2, 1]]
+    }
+
     #[test]
     fn test_perm_1() {
         let mut rng = rand::rng();
@@ -203,6 +215,26 @@ mod tests {
     }
 
     #[test]
+    fn test_perm_3() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| rng.random::<f64>());
+        let res = permanent_single(matrix.view());
+        let expected = true_perm_3(matrix.view());
+        assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
+    }
+
+    #[test]
+    fn test_perm_3_cmplx() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| {
+            Complex::new(rng.random::<f64>(), rng.random::<f64>())
+        });
+        let res = permanent_single(matrix.view());
+        let expected = true_perm_3(matrix.view());
+        assert_equal_complex(res, expected);
+    }
+
+    #[test]
     fn test_perm_multi_1() {
         let mut rng = rand::rng();
         let a: f64 = rng.random();
@@ -235,6 +267,26 @@ mod tests {
         });
         let res = permanent_multi(matrix.view());
         let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        assert_equal_complex(res, expected);
+    }
+
+    #[test]
+    fn test_perm_multi_3() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| rng.random::<f64>());
+        let res = permanent_multi(matrix.view());
+        let expected = true_perm_3(matrix.view());
+        assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
+    }
+
+    #[test]
+    fn test_perm_multi_3_cmplx() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| {
+            Complex::new(rng.random::<f64>(), rng.random::<f64>())
+        });
+        let res = permanent_multi(matrix.view());
+        let expected = true_perm_3(matrix.view());
         assert_equal_complex(res, expected);
     }
 }
