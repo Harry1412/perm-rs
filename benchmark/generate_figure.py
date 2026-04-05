@@ -48,7 +48,7 @@ if __name__ == "__main__":
         time_permanent(func, m)
 
     # Settings
-    n_range = range(2, 19)  # Unitary sizes
+    n_range = range(2, 31)  # Unitary sizes
     n_reps = 50  # Number of repeats
     n_best = 5  # Best n times to take
 
