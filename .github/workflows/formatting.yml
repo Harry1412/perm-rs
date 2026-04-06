@@ -31,7 +31,7 @@ jobs:
         run: | 
             uv venv --python 3.13
             source .venv/bin/activate
-            uv pip install -r requirements.txt --system
+            uv pip install -r requirements.txt
 
       - name: Check formatting with ruff
         run: |
