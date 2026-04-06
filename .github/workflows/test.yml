@@ -30,10 +30,14 @@ jobs:
             uv pip install -r requirements.txt
 
       - name: Build with maturin
-        run: python -m maturin develop --release
+        run: | 
+          source .venv/bin/activate
+          maturin develop --release
 
       - name: Test with pytest
-        run: pytest
+        run: |
+          source .venv/bin/activate
+          pytest
 
   rust-test:
     runs-on: ubuntu-latest
