@@ -113,6 +113,6 @@ if __name__ == "__main__":
     plt.ylabel("Relative calculation time (%)")
     plt.axhline(100, color="black", linestyle="--", label="thewalrus")
     plt.title("Relative calculation time of perm_rs to thewalrus.")
-    plt.ylim(0, 400)
+    plt.ylim(0, 300)
     plt.legend()
     plt.savefig(path / "perm_relative_times.png")
