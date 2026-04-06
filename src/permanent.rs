@@ -41,7 +41,7 @@ fn gray_loops<T>(
 where
     T: SupportsPermanent,
 {
-    let n = matrix.ncols();
+    let n = matrix.nrows();
 
     let mut sign = match start_positive_sign {
         true => T::one(),
@@ -81,7 +81,17 @@ pub fn permanent_single<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent,
 {
-    let num_loops = 2_u64.pow(matrix.ncols() as u32 - 1);
+    match matrix.nrows().cmp(&3) {
+        cmp::Ordering::Greater => _permanent_single(matrix),
+        _ => permanent_exact(matrix),
+    }
+}
+
+pub fn _permanent_single<T>(matrix: ArrayView2<T>) -> T
+where
+    T: SupportsPermanent,
+{
+    let num_loops = 2_u64.pow(matrix.nrows() as u32 - 1);
 
     let mut row_comb = matrix.sum_axis(ndarray::Axis(0)).to_vec();
     let total = gray_loops(&matrix, &mut row_comb, 1..=num_loops, true);
@@ -96,7 +106,7 @@ pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
 {
-    let n = matrix.ncols();
+    let n = matrix.nrows();
     let num_loops = 2_u64.pow(n as u32 - 1);
     let num_threads = rayon::current_num_threads() as u64;
     let chunk_size = num_loops.div_ceil(num_threads);
@@ -137,6 +147,26 @@ where
     total / T::from_u64(num_loops).unwrap()
 }
 
+/// Exact implementations of the permanent calculations for n <= 3.
+pub fn permanent_exact<T>(matrix: ArrayView2<T>) -> T
+where
+    T: SupportsPermanent,
+{
+    match matrix.nrows() {
+        1 => matrix[[0, 0]],
+        2 => matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]],
+        3 => {
+            matrix[[0, 0]] * matrix[[1, 1]] * matrix[[2, 2]]
+                + matrix[[0, 1]] * matrix[[1, 2]] * matrix[[2, 0]]
+                + matrix[[0, 2]] * matrix[[1, 0]] * matrix[[2, 1]]
+                + matrix[[0, 2]] * matrix[[1, 1]] * matrix[[2, 0]]
+                + matrix[[0, 1]] * matrix[[1, 0]] * matrix[[2, 2]]
+                + matrix[[0, 0]] * matrix[[1, 2]] * matrix[[2, 1]]
+        }
+        _ => panic!("Exact permanent not implemented for n > 3."),
+    }
+}
+
 /// Computes the permanent of a provided matrix, switching between single &
 /// multi-threading based on an internally set threshold to optimise
 /// performance.
@@ -144,8 +174,8 @@ pub fn permanent<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
 {
-    if matrix.ncols() < 17 {
-        permanent_single(matrix)
+    if matrix.nrows() < 17 {
+        _permanent_single(matrix)
     } else {
         permanent_multi(matrix)
     }
@@ -166,23 +196,11 @@ mod tests {
         assert_abs_diff_eq!(v1.im, v2.im, epsilon = EPSILON);
     }
 
-    fn true_perm_3<T>(matrix: ArrayView2<T>) -> T
-    where
-        T: SupportsPermanent,
-    {
-        matrix[[0, 0]] * matrix[[1, 1]] * matrix[[2, 2]]
-            + matrix[[0, 1]] * matrix[[1, 2]] * matrix[[2, 0]]
-            + matrix[[0, 2]] * matrix[[1, 0]] * matrix[[2, 1]]
-            + matrix[[0, 2]] * matrix[[1, 1]] * matrix[[2, 0]]
-            + matrix[[0, 1]] * matrix[[1, 0]] * matrix[[2, 2]]
-            + matrix[[0, 0]] * matrix[[1, 2]] * matrix[[2, 1]]
-    }
-
     #[test]
     fn test_perm_1() {
         let mut rng = rand::rng();
         let a: f64 = rng.random();
-        let res = permanent_single(Array2::from_elem((1, 1), a).view());
+        let res = _permanent_single(Array2::from_elem((1, 1), a).view());
         assert_abs_diff_eq!(res, a, epsilon = EPSILON);
     }
 
@@ -190,7 +208,7 @@ mod tests {
     fn test_perm_1_cmplx() {
         let mut rng = rand::rng();
         let a: Complex<f64> = Complex::new(rng.random(), rng.random());
-        let res = permanent_single(Array2::from_elem((1, 1), a).view());
+        let res = _permanent_single(Array2::from_elem((1, 1), a).view());
         assert_equal_complex(res, a);
     }
 
@@ -198,8 +216,8 @@ mod tests {
     fn test_perm_2() {
         let mut rng = rand::rng();
         let matrix = Array2::from_shape_fn((2, 2), |_| rng.random::<f64>());
-        let res = permanent_single(matrix.view());
-        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        let res = _permanent_single(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
     }
 
@@ -209,8 +227,8 @@ mod tests {
         let matrix = Array2::from_shape_fn((2, 2), |_| {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
-        let res = permanent_single(matrix.view());
-        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        let res = _permanent_single(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_equal_complex(res, expected);
     }
 
@@ -218,8 +236,8 @@ mod tests {
     fn test_perm_3() {
         let mut rng = rand::rng();
         let matrix = Array2::from_shape_fn((3, 3), |_| rng.random::<f64>());
-        let res = permanent_single(matrix.view());
-        let expected = true_perm_3(matrix.view());
+        let res = _permanent_single(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
     }
 
@@ -229,8 +247,8 @@ mod tests {
         let matrix = Array2::from_shape_fn((3, 3), |_| {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
-        let res = permanent_single(matrix.view());
-        let expected = true_perm_3(matrix.view());
+        let res = _permanent_single(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_equal_complex(res, expected);
     }
 
@@ -255,7 +273,7 @@ mod tests {
         let mut rng = rand::rng();
         let matrix = Array2::from_shape_fn((2, 2), |_| rng.random::<f64>());
         let res = permanent_multi(matrix.view());
-        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        let expected = permanent_exact(matrix.view());
         assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
     }
 
@@ -266,7 +284,7 @@ mod tests {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
         let res = permanent_multi(matrix.view());
-        let expected = matrix[[0, 0]] * matrix[[1, 1]] + matrix[[0, 1]] * matrix[[1, 0]];
+        let expected = permanent_exact(matrix.view());
         assert_equal_complex(res, expected);
     }
 
@@ -275,7 +293,7 @@ mod tests {
         let mut rng = rand::rng();
         let matrix = Array2::from_shape_fn((3, 3), |_| rng.random::<f64>());
         let res = permanent_multi(matrix.view());
-        let expected = true_perm_3(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_abs_diff_eq!(res, expected, epsilon = EPSILON);
     }
 
@@ -286,7 +304,7 @@ mod tests {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
         let res = permanent_multi(matrix.view());
-        let expected = true_perm_3(matrix.view());
+        let expected = permanent_exact(matrix.view());
         assert_equal_complex(res, expected);
     }
 }
