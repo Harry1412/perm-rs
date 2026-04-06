@@ -102,7 +102,7 @@ where
 
 /// Compute the permanent using multi-threading, modifying the single-threaded
 /// code using the techniques discussed in
-/// https://doi.org/10.48550/arXiv.2602.10141 to improve performance.
+/// https://doi.org/10.48550/arXiv.2407.20205 to improve performance.
 pub fn permanent_multi<T>(matrix: ArrayView2<T>) -> T
 where
     T: SupportsPermanent + Send + Sync,
