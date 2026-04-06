@@ -1,8 +1,8 @@
 # perm-rs
 
-This library contains a Rust re-implementation of the permanent calculation function from the [thewalrus](https://github.com/XanaduAI/thewalrus) module, using maturin and PyO3 to then make this callable from Python.
+This library contains a Rust re-implementation of the permanent calculation function from the [thewalrus](https://github.com/XanaduAI/thewalrus) module, using maturin and PyO3 to then make this callable from Python. This is then extended to support calculation across multiple processes, which offers signifcant performance improvements at large matrix sizes. 
 
-It is mainly intended for testing how rust-enhanced modules can be developed for Python and then distributed via pypi to different platforms.
+The library is mainly intended for testing how rust-enhanced modules can be developed for Python and then distributed via pypi to different platforms.
 
 ## Install
 
@@ -34,8 +34,14 @@ The performance of the library can be benchmarked against thewalrus implementati
 pytest benchmark
 ```
 
-Alternatively, a more comprehensive set of matrix sizes can be compared using the script in ``benchmark/generate_figure.py``. The following is the output comparison between the two libraries when run using a AMD Ryzen 9 9950x3D CPU:
+Alternatively, a more comprehensive set of matrix sizes can be compared using the script in ``benchmark/generate_figure.py``, also comparing the single and multi-threaded approaches. The following is the output comparison between the two libraries when run using a AMD Ryzen 9 9950x3D CPU:
 
-![perm_rs & thewalrus comparison](/benchmark/perm_relative_times.png)
+![perm_rs & thewalrus comparison](/benchmark/perm_calc_times.png)
 
-From this, it can be seen that currently the library is more performant for lower values of n, but trends towards thewalrus before becoming slower at ~n=24.
+There are current trends to observe from this: 
+- The single-threaded case is faster than thewalrus for small matrix sizes, but trends towards similar runtimes for large n.
+- The multi-threaded case is much slower at large n, due to the overhead from this which sets the minimum time to be ~1ms, but after passing a threshold at n ~ 17 becomes much faster than both thewalrus and single-threaded implementations.
+
+Plotting the relative performance of the library against thewarlus makes the above performance trends even clearer:
+
+![perm_rs & thewalrus relative comparison](/benchmark/perm_relative_times.png)
