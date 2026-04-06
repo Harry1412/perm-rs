@@ -22,18 +22,15 @@ jobs:
       - name: Install dependencies
         run: | 
             uv venv --python 3.13
-            source .venv/bin/activate
             uv pip install -r requirements.txt
 
       - name: Build with maturin
         run: | 
-          source .venv/bin/activate
-          maturin develop --release
+          uv run maturin develop --release
 
       - name: Test with pytest
         run: |
-          source .venv/bin/activate
-          pytest
+          uv run pytest
 
   rust-test:
     runs-on: ubuntu-latest
