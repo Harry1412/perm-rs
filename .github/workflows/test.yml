@@ -1,4 +1,4 @@
-name: Cargo test
+name: Code testing
 
 on:
   push:
@@ -25,12 +25,10 @@ jobs:
             uv pip install -r requirements.txt
 
       - name: Build with maturin
-        run: | 
-          uv run maturin develop --release
+        run: uv run maturin develop --release
 
       - name: Test with pytest
-        run: |
-          uv run pytest
+        run: uv run pytest
 
   rust-test:
     runs-on: ubuntu-latest
