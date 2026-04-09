@@ -1,0 +1,8 @@
+name: 'Set version from git tag'
+description: 'Patches Cargo.toml with the version from the current git tag'
+runs:
+  using: composite
+  steps:
+    - name: Patch Cargo.toml
+      shell: bash
+      run: sed -i "s/^version = \".*\"/version = \"${GITHUB_REF_NAME#v}\"/" Cargo.toml
