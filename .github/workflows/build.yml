@@ -3,7 +3,7 @@
 #
 #    maturin generate-ci github
 #
-name: build
+name: Build
 
 on:
   release:
