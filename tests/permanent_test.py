@@ -1,13 +1,23 @@
 from functools import partial
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 import thewalrus
 from scipy.stats import unitary_group
 
 from perm_rs import permanent
 
-random_unitary = unitary_group.rvs
+
+def random_unitary(
+    n: int, seed: int | None = None
+) -> npt.NDArray[np.complex128]:
+    """Generates a random unitary of size nxn."""
+    if n == 1:
+        rng = np.random.RandomState(seed=seed)
+        return np.exp(2j * np.pi * rng.random((1, 1)))
+    return unitary_group.rvs(n, random_state=seed)
+
 
 approximate = partial(pytest.approx, abs=1e-6)
 
