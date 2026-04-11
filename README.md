@@ -38,9 +38,10 @@ Alternatively, a more comprehensive set of matrix sizes can be compared using th
 
 ![perm_rs & thewalrus comparison](/benchmark/perm_calc_times.png)
 
-There are current trends to observe from this: 
+There are two current trends to observe from this: 
 - The single-threaded case is faster than thewalrus for small matrix sizes, but trends towards similar runtimes for large n.
 - The multi-threaded case is much slower at large n, due to the overhead from this which sets the minimum time to be ~1ms, but after passing a threshold at n ~ 17 becomes much faster than both thewalrus and single-threaded implementations.
+The optimised case shown here, is using the ``permanent`` function, which automatically selects between single & multi-threaded, based on the size of the provided unitary. This will likely not be optimal for all CPUs, but should be close enough that performance degredation is not too significant.
 
 Plotting the relative performance of the library against thewarlus makes the above performance trends even clearer:
 
