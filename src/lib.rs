@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 mod permanent;
 
-pub use permanent::{permanent_multi, permanent_single};
+pub use permanent::{permanent, permanent_multi, permanent_single};
 
 #[pymodule]
 mod perm_rs {

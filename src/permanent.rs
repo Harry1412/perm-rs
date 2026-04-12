@@ -169,14 +169,16 @@ where
     }
 }
 
+const DEFAULT_THRESHOLD: usize = 17;
+
 /// Computes the permanent of a provided matrix, switching between single &
 /// multi-threading based on an internally set threshold to optimise
 /// performance.
-fn _permanent<T>(matrix: ArrayView2<T>, threshold: usize) -> T
+pub fn permanent<T>(matrix: ArrayView2<T>, threshold: Option<usize>) -> T
 where
     T: SupportsPermanent + Send + Sync,
 {
-    if matrix.nrows() < threshold {
+    if matrix.nrows() < threshold.unwrap_or(DEFAULT_THRESHOLD) {
         _permanent_single(matrix)
     } else {
         permanent_multi(matrix)
@@ -189,10 +191,10 @@ where
 #[macro_export]
 macro_rules! permanent {
     ($matrix:expr) => {
-        permanent!($matrix, 17)
+        permanent!($matrix, DEFAULT_THRESHOLD)
     };
     ($matrix:expr, $threshold:expr) => {
-        _permanent($matrix, $threshold)
+        permanent($matrix, Some($threshold))
     };
 }
 
