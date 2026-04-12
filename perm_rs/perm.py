@@ -3,6 +3,7 @@ from typing import TypeVar
 import numpy as np
 import numpy.typing as npt
 
+from .__settings import settings
 from .perm_rs import (
     _permanent_multi_cf32,
     _permanent_multi_cf64,
@@ -31,7 +32,7 @@ def permanent(matrix: npt.NDArray[T]) -> T:
     """
     Calculates the permanent for a provided matrix.
     """
-    if matrix.shape[0] < 17:
+    if matrix.shape[0] < settings.multi_threaded_threshold:
         return permanent_single(matrix)
     return permanent_multi(matrix)
 

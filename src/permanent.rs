@@ -169,18 +169,33 @@ where
     }
 }
 
+const DEFAULT_THRESHOLD: usize = 17;
+
 /// Computes the permanent of a provided matrix, switching between single &
 /// multi-threading based on an internally set threshold to optimise
 /// performance.
-pub fn permanent<T>(matrix: ArrayView2<T>) -> T
+pub fn permanent<T>(matrix: ArrayView2<T>, threshold: Option<usize>) -> T
 where
     T: SupportsPermanent + Send + Sync,
 {
-    if matrix.nrows() < 17 {
+    if matrix.nrows() < threshold.unwrap_or(DEFAULT_THRESHOLD) {
         _permanent_single(matrix)
     } else {
         permanent_multi(matrix)
     }
+}
+
+/// Computes the permanent of a provided matrix, switching between single &
+/// multi-threading based on an internally set threshold to optimise
+/// performance.
+#[macro_export]
+macro_rules! permanent {
+    ($matrix:expr) => {
+        permanent!($matrix, DEFAULT_THRESHOLD)
+    };
+    ($matrix:expr, $threshold:expr) => {
+        permanent($matrix, Some($threshold))
+    };
 }
 
 #[cfg(test)]
@@ -306,6 +321,28 @@ mod tests {
             Complex::new(rng.random::<f64>(), rng.random::<f64>())
         });
         let res = permanent_multi(matrix.view());
+        let expected = permanent_exact(matrix.view());
+        assert_equal_complex(res, expected);
+    }
+
+    #[test]
+    fn test_permanent_macro() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| {
+            Complex::new(rng.random::<f64>(), rng.random::<f64>())
+        });
+        let res = permanent!(matrix.view());
+        let expected = permanent_exact(matrix.view());
+        assert_equal_complex(res, expected);
+    }
+
+    #[test]
+    fn test_permanent_macro_threshold() {
+        let mut rng = rand::rng();
+        let matrix = Array2::from_shape_fn((3, 3), |_| {
+            Complex::new(rng.random::<f64>(), rng.random::<f64>())
+        });
+        let res = permanent!(matrix.view(), 10);
         let expected = permanent_exact(matrix.view());
         assert_equal_complex(res, expected);
     }
