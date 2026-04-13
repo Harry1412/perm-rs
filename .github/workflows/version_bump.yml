@@ -19,7 +19,9 @@ jobs:
 
     - uses: ./.github/actions/set-version
 
+    - name: Rebuild to trigger cargo.lock update
+      run: cargo build
+
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: Update cargo version
-        
+        commit_message: Bump cargo version
