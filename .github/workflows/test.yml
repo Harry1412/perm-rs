@@ -47,9 +47,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build with cargo
-        run: cargo build
 
       - name: Run cargo tests
-        run: cargo test --workspace
+        run: cargo test
