@@ -1,6 +1,14 @@
+from . import perm_rs
 from .__settings import settings
 from .perm import permanent, permanent_multi, permanent_single
+from .perm_rs import performance_profiler
 
-__doc__ = perm_rs.__doc__  # noqa: F821
+__doc__ = perm_rs.__doc__
 
-__all__ = ["permanent", "permanent_multi", "permanent_single", "settings"]
+__all__ = [
+    "performance_profiler",
+    "permanent",
+    "permanent_multi",
+    "permanent_single",
+    "settings",
+]
