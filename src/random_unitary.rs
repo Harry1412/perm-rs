@@ -40,6 +40,8 @@ mod tests {
     use approx::assert_abs_diff_eq;
     use ndarray::Array2;
 
+    /// Checks that the randomly generated unitaries are indeed unitary by
+    /// validating that U*U_dagger = I
     #[test]
     fn test_is_unitary() {
         let n = 10;

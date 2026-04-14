@@ -6,8 +6,8 @@ const N_REPS: usize = 5;
 const N_KEEP: usize = 3;
 
 /// Returns the relative execution speed of single to multi-threaded
-/// computation. This will be > 1 if single threaded is faster, otherwise
-/// positive.
+/// computation, by taking the fastest n samples from N runs. The ratio returned
+/// will be > 1 if single threaded is faster, otherwise < 1.
 fn _single_to_multi_ratio(n: usize) -> f64 {
     let mat = random_unitary(n);
     let mut single_times: Vec<f64> = (0..N_REPS)
