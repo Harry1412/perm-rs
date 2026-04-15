@@ -62,7 +62,7 @@ fn _permanent_multi_cf64<'py>(
 #[pyfunction]
 #[pyo3(name = "performance_profiler")]
 fn py_performance_profiler() -> PyResult<usize> {
-    Ok(crate::performance_profiler())
+    performance_profiler().map_err(|e| exceptions::PyRuntimeError::new_err(e.to_string()))
 }
 
 #[pymodule]
