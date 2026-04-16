@@ -9,16 +9,16 @@ name = "perm_rs"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-ndarray = "0.17.2"
+ndarray = { version = "0.17.2", features = ["approx"] }
 num-complex = "0.4.6"
 num-traits = "0.2.19"
 numpy = "0.28.0"
 pyo3 = { version = "0.28.2", features = ["abi3-py310", "num-complex"] }
 rayon = "1.11.0"
+rand = "0.10.0"
 
 [dev-dependencies]
 approx = "0.5.1"
-rand = "0.10.0"
 
 [features]
 extension-module = ["pyo3/extension-module"]
