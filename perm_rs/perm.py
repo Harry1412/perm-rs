@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -28,7 +28,15 @@ def _validate_matrix(matrix: npt.NDArray[T]) -> None:
         raise ValueError("Matrix should be square.")
 
 
-def permanent(matrix: npt.NDArray[T]) -> T:
+@overload
+def permanent(matrix: npt.NDArray[np.float32]) -> np.float32: ...  # type: ignore[overload-overlap]
+@overload
+def permanent(matrix: npt.NDArray[np.float64]) -> np.float64: ...
+@overload
+def permanent(matrix: npt.NDArray[np.complex64]) -> np.complex64: ...  # type: ignore[overload-overlap]
+@overload
+def permanent(matrix: npt.NDArray[np.complex128]) -> np.complex128: ...
+def permanent(matrix: npt.NDArray[Any]) -> Any:
     """
     Calculates the permanent for a provided matrix.
     """
@@ -37,7 +45,15 @@ def permanent(matrix: npt.NDArray[T]) -> T:
     return permanent_multi(matrix)
 
 
-def permanent_single(matrix: npt.NDArray[T]) -> T:
+@overload
+def permanent_single(matrix: npt.NDArray[np.float32]) -> np.float32: ...  # type: ignore[overload-overlap]
+@overload
+def permanent_single(matrix: npt.NDArray[np.float64]) -> np.float64: ...
+@overload
+def permanent_single(matrix: npt.NDArray[np.complex64]) -> np.complex64: ...  # type: ignore[overload-overlap]
+@overload
+def permanent_single(matrix: npt.NDArray[np.complex128]) -> np.complex128: ...
+def permanent_single(matrix: npt.NDArray[Any]) -> Any:
     """
     Calculates the permanent for a provided matrix using a standard
     single-threaded approach.
@@ -52,7 +68,15 @@ def permanent_single(matrix: npt.NDArray[T]) -> T:
     return _permanent_single_cf64(matrix)
 
 
-def permanent_multi(matrix: npt.NDArray[T]) -> T:
+@overload
+def permanent_multi(matrix: npt.NDArray[np.float32]) -> np.float32: ...  # type: ignore[overload-overlap]
+@overload
+def permanent_multi(matrix: npt.NDArray[np.float64]) -> np.float64: ...
+@overload
+def permanent_multi(matrix: npt.NDArray[np.complex64]) -> np.complex64: ...  # type: ignore[overload-overlap]
+@overload
+def permanent_multi(matrix: npt.NDArray[np.complex128]) -> np.complex128: ...
+def permanent_multi(matrix: npt.NDArray[Any]) -> Any:
     """
     Calculates the permanent for a provided matrix using all available threads
     on a system.

@@ -99,3 +99,8 @@ parametrize-values-row-type = "tuple"
 
 [tool.ruff.lint.flake8-builtins]
 builtins-ignorelist = ["input"]
+
+## mypy config
+[tool.mypy]
+files = "perm_rs"
+strict = true
