@@ -1,5 +1,6 @@
 matplotlib
 maturin
+mypy
 numpy
 pytest
 pytest-benchmark
