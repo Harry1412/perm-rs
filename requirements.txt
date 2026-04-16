@@ -1,9 +1,0 @@
-matplotlib
-maturin
-mypy
-numpy
-pytest
-pytest-benchmark
-ruff
-scipy
-thewalrus
