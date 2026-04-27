@@ -26,6 +26,10 @@ For optimal performance, it should be built with the release profile:
 (venv) maturin develop --release
 ```
 
+### UV
+
+[uv](https://docs.astral.sh/uv/) can alternatively be utilised to simplify the above process. The command `uv sync` will install all requirements into a virtual environment and build the library in release mode.
+
 ## Benchmarking
 
 The performance of the library can be benchmarked against thewalrus implementation using the following command:
