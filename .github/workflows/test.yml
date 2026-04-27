@@ -31,11 +31,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
+      - name: Install dependencies & build
         run: uv sync
-
-      - name: Build with maturin
-        run: uv run maturin develop --release
 
       - name: Test with pytest
         run: uv run pytest
