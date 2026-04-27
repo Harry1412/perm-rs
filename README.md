@@ -8,10 +8,10 @@ The library is mainly intended for testing how rust-enhanced modules can be deve
 
 Rust must first be installed if not already, the instructions for which can be found [here](https://rust-lang.org/tools/install/).
 
-Maturin is then utilised for building the rust code and generating Python bindings, this requires a virtual or conda environment. All requirements, including maturin, may be installed using the following:
+Maturin is then utilised for building the rust code and generating Python bindings, this requires a virtual or conda environment. All requirements, including maturin, may be installed using the below command. This requires pip 25.1 - use `pip install pip --upgrade` to update to this.
 
 ```bash
-(venv) pip install -r requirements.txt
+(venv) pip install --group dev
 ```
 
 Once installed, the library is built using:
