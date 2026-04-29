@@ -1,0 +1,13 @@
+perm-rs
+Copyright 2026 Harry Bromley
+
+This product includes a Rust reimplementation derived from XanaduAI/thewalrus, 
+specifically:
+  thewalrus/thewalrus/_permanent.py
+  https://github.com/XanaduAI/thewalrus
+
+Original copyright:
+  Copyright 2019 Xanadu Quantum Technologies Inc.
+
+The original work is licensed under the Apache License, Version 2.0.
+A copy of that licence is provided in LICENSE-APACHE.
