@@ -4,6 +4,10 @@ This library contains a Rust re-implementation of the permanent calculation func
 
 The library is mainly intended for testing how rust-enhanced modules can be developed for Python and then distributed via pypi to different platforms.
 
+## License
+
+This software is distributed under the terms of both MIT and Apache-2.0 licenses. The permanent implementation in [src/permanent.py](./src/permanent.rs) is derrived from Apache-2.0 licensed code. See [Notice](./NOTICE) for more information. 
+
 ## Install
 
 Rust must first be installed if not already, the instructions for which can be found [here](https://rust-lang.org/tools/install/).
