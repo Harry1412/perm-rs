@@ -188,7 +188,7 @@ where
     }
 }
 
-const DEFAULT_THRESHOLD: usize = 17;
+const DEFAULT_THRESHOLD: usize = 15;
 
 /// Computes the permanent of a provided matrix, switching between single &
 /// multi-threading based on an internally set threshold to optimise

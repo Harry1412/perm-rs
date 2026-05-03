@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class Settings:
-    _multi_threaded_threshold: int = 17
+    _multi_threaded_threshold: int = 15
 
     @property
     def multi_threaded_threshold(self) -> int:
